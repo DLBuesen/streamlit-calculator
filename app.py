@@ -23,8 +23,8 @@ else:
 # --- Input section ---
 st.subheader("Inputs")
 
-a = st.number_input("Enter value A", value=0.0, format="%.1f")
-b = st.number_input("Enter value B", value=0.0, format="%.1f")
+a = st.number_input("Enter value A", value=0.0, format="%.0f")
+b = st.number_input("Enter value B", value=0.0, format="%.0f")
 
 operation = st.selectbox(
     "Choose operation",
