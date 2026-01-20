@@ -33,7 +33,7 @@ operation = st.selectbox(
 
 # --- Compute button ---
 if st.button("Compute"):
-    BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/solve"
+    BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/ping"
 
     try:
         response = requests.post(
