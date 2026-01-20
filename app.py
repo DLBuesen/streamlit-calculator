@@ -13,12 +13,15 @@ st.title("Scientific Calculator (Backend Powered)")
 
 BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/ping"
 
-status = cached_backend_status(BACKEND_URL)
+st.subheader("Backend Status")
 
-if status:
-    st.success("Backend is online and reachable")
-else:
-    st.error("Backend is offline or unreachable")
+if st.button("Check backend status"):
+    status = cached_backend_status(BACKEND_URL)
+    if status:
+        st.success("Backend is online and reachable")
+    else:
+        st.error("Backend is offline or unreachable")
+
 
 # --- Input section ---
 st.subheader("Inputs")
