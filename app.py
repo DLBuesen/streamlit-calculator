@@ -46,31 +46,11 @@ operation = st.selectbox(
     ["Add", "Subtract", "Multiply", "Divide"]
 )
 
-# --- Compute button ---
-if st.button("Compute"):
-
-    try:
-        response = requests.post(
-            SOLVE_URL,
-            json={"x": a, "y": b, "operation": operation}
-        )
-
-        data = response.json()
-
-        if "result" in data:
-            st.subheader("Result")
-            st.write(data["result"])
-        else:
-            st.error(data.get("error", "Unknown error"))
-
-    except Exception as e:
-        st.error(f"Backend unreachable: {e}")
-
 # --- Status Bar ---
 
 st.subheader("Run Solver")
 
-run_solver = st.button("Start computation")
+run_solver = st.button("Start Computation")
 
 if run_solver:
     progress = st.progress(0)
