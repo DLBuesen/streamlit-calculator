@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import time
 
 @st.cache_data(ttl=50)
 def cached_backend_status(url: str) -> bool:
@@ -13,17 +14,23 @@ st.title("Scientific Calculator (Backend Powered)")
 
 BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/ping"
 
+import time
+
 st.subheader("Backend Status")
 
 if st.button("Check backend status"):
+    start = time.time()
     try:
         r = requests.get(BACKEND_URL, timeout=0.5)
-        if r.status_code in (200, 400, 405):
-            st.success("Backend is online and reachable")
+        latency_ms = (time.time() - start) * 1000
+
+        if r.status_code == 200:
+            st.success(f"Backend online — {latency_ms:.1f} ms response time")
         else:
             st.error(f"Backend responded with status {r.status_code}")
-    except Exception as e:
+    except Exception:
         st.error("Backend is offline or unreachable")
+
 
 
 
