@@ -21,7 +21,7 @@ st.subheader("Backend Status")
 if st.button("Check backend status"):
     start = time.time()
     try:
-        r = requests.get(BACKEND_URL, timeout=0.5)
+        r = requests.get(BACKEND_URL, timeout=1.0)
         latency_ms = (time.time() - start) * 1000
 
         if r.status_code == 200:
