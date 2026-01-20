@@ -16,11 +16,15 @@ BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/ping"
 st.subheader("Backend Status")
 
 if st.button("Check backend status"):
-    status = cached_backend_status(BACKEND_URL)
-    if status:
-        st.success("Backend is online and reachable")
-    else:
+    try:
+        r = requests.get(BACKEND_URL, timeout=0.5)
+        if r.status_code in (200, 400, 405):
+            st.success("Backend is online and reachable")
+        else:
+            st.error(f"Backend responded with status {r.status_code}")
+    except Exception as e:
         st.error("Backend is offline or unreachable")
+
 
 
 # --- Input section ---
