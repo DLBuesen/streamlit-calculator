@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-@st.cache_data(ttl=5)
+@st.cache_data(ttl=50)
 def cached_backend_status(url: str) -> bool:
     try:
         r = requests.get(url, timeout=1)
