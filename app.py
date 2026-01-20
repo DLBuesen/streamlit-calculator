@@ -11,7 +11,7 @@ def cached_backend_status(url: str) -> bool:
 
 st.title("Scientific Calculator (Backend Powered)")
 
-BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/solve"
+BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/ping"
 
 status = cached_backend_status(BACKEND_URL)
 
@@ -33,7 +33,7 @@ operation = st.selectbox(
 
 # --- Compute button ---
 if st.button("Compute"):
-    BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/ping"
+    BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/solve"
 
     try:
         response = requests.post(
