@@ -1,24 +1,23 @@
 import streamlit as st
 import requests
 
-def check_backend(url: str) -> bool:
+@st.cache_data(ttl=5)
+def cached_backend_status(url: str) -> bool:
     try:
-        r = requests.get(url, timeout=2)
+        r = requests.get(url, timeout=1)
         return r.status_code in (200, 400, 405)
     except Exception:
         return False
-
 
 st.title("Scientific Calculator (Backend Powered)")
 
 BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/solve"
 
-st.subheader("Backend Status")
-
-if check_backend(BACKEND_URL):
+if cached_backend_status(BACKEND_URL):
     st.success("Backend is online and reachable")
 else:
     st.error("Backend is offline or unreachable")
+
 
 
 # --- Input section ---
