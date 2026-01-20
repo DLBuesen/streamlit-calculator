@@ -1,6 +1,7 @@
 import streamlit as st
+import requests
 
-st.title("Scientific Calculator")
+st.title("Scientific Calculator (Backend Powered)")
 
 # --- Input section ---
 st.subheader("Inputs")
@@ -15,15 +16,23 @@ operation = st.selectbox(
 
 # --- Compute button ---
 if st.button("Compute"):
-    if operation == "Add":
-        result = a + b
-    elif operation == "Subtract":
-        result = a - b
-    elif operation == "Multiply":
-        result = a * b
-    elif operation == "Divide":
-        result = a / b if b != 0 else "Error: division by zero"
+    BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/solve"
 
-    st.subheader("Result")
-    st.write(result)
+    try:
+        response = requests.post(
+            BACKEND_URL,
+            json={"x": a, "y": b, "operation": operation}
+        )
+
+        data = response.json()
+
+        if "result" in data:
+            st.subheader("Result")
+            st.write(data["result"])
+        else:
+            st.error(data.get("error", "Unknown error"))
+
+    except Exception as e:
+        st.error(f"Backend unreachable: {e}")
+
 
