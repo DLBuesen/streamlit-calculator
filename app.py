@@ -70,12 +70,6 @@ if st.button("Compute"):
 
 st.subheader("Run Solver")
 
-import streamlit as st
-import requests
-import time
-
-st.subheader("Run Solver")
-
 run_solver = st.button("Start computation")
 
 if run_solver:
