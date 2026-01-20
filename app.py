@@ -66,4 +66,26 @@ if st.button("Compute"):
     except Exception as e:
         st.error(f"Backend unreachable: {e}")
 
+# --- Status Bar ---
+
+st.subheader("Run Solver")
+
+if st.button("Start computation"):
+    progress = st.progress(0)
+    status = st.empty()
+
+    # Start the backend request
+    with st.spinner("Running solver..."):
+        for i in range(100):
+            time.sleep(0.1)  # smooth animation
+            progress.progress(i + 1)
+            status.text(f"Progress: {i+1}%")
+
+        # After animation finishes, call backend
+        r = requests.post(BACKEND_URL, json=payload, timeout=60)
+        result = r.json()
+
+    st.success("Computation finished")
+    st.write(result)
+
 
