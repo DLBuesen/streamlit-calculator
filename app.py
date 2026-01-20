@@ -88,11 +88,26 @@ if st.button("Start computation"):
         }
 
         # Send to backend
-        r = requests.post(BACKEND_URL, json=payload, timeout=60)
-        result = r.json()
+        if st.button("Start computation"):
+            progress = st.progress(0)
+            status = st.empty()
 
-    st.success("Computation finished")
-    st.write(result)
+            with st.spinner("Running solver..."):
+                for i in range(100):
+                    ...
+                    progress.progress(i + 1)
+
+                payload = {...}
+
+                r = requests.post(BACKEND_URL, json=payload, timeout=60)
+                result = r.json()
+
+            st.success("Computation finished")
+            st.write(result)
+
+
+            st.success("Computation finished")
+            st.write(result)
 
 
 
