@@ -12,7 +12,8 @@ def cached_backend_status(url: str) -> bool:
 
 st.title("Scientific Calculator (Backend Powered)")
 
-BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/ping"
+PING_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/ping"
+SOLVE_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/solve"
 
 import time
 
@@ -21,7 +22,7 @@ st.subheader("Backend Status")
 if st.button("Check backend status"):
     start = time.time()
     try:
-        r = requests.get(BACKEND_URL, timeout=2.0)
+        r = requests.get(PING_URL, timeout=2.0)
         latency_ms = (time.time() - start) * 1000
 
         if r.status_code == 200:
@@ -47,11 +48,10 @@ operation = st.selectbox(
 
 # --- Compute button ---
 if st.button("Compute"):
-    BACKEND_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/solve"
 
     try:
         response = requests.post(
-            BACKEND_URL,
+            SOLVE_URL,
             json={"x": a, "y": b, "operation": operation}
         )
 
@@ -90,7 +90,7 @@ if run_solver:
         }
 
         try:
-            r = requests.post(BACKEND_URL, json=payload, timeout=60)
+            r = requests.post(SOLVE_URL, json=payload, timeout=60)
             r.raise_for_status()
             result = r.json()
 
