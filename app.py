@@ -74,18 +74,25 @@ if st.button("Start computation"):
     progress = st.progress(0)
     status = st.empty()
 
-    # Start the backend request
     with st.spinner("Running solver..."):
         for i in range(100):
-            time.sleep(0.1)  # smooth animation
+            time.sleep(0.1)
             progress.progress(i + 1)
             status.text(f"Progress: {i+1}%")
 
-        # After animation finishes, call backend
+        # Define payload from user inputs
+        payload = {
+            "x": a,
+            "y": b,
+            "operation": operation
+        }
+
+        # Send to backend
         r = requests.post(BACKEND_URL, json=payload, timeout=60)
         result = r.json()
 
     st.success("Computation finished")
     st.write(result)
+
 
 
