@@ -70,29 +70,40 @@ if st.button("Compute"):
 
 st.subheader("Run Solver")
 
+import streamlit as st
+import requests
+import time
+
+st.subheader("Run Solver")
+
 run_solver = st.button("Start computation")
 
 if run_solver:
     progress = st.progress(0)
     status = st.empty()
 
-    with st.spinner("Running solver..."):
-        for i in range(100):
-            time.sleep(0.1)
-            progress.progress(i + 1)
-            status.text(f"Progress: {i+1}%")
+    # Build payload from user inputs
+    payload = {
+        "x": a,
+        "y": b,
+        "operation": operation
+    }
 
-        # Build payload from user inputs
-        payload = {
-            "x": a,
-            "y": b,
-            "operation": operation
-        }
+    with st.spinner("Running solver..."):
+        start = time.time()
 
         try:
             r = requests.post(SOLVE_URL, json=payload, timeout=60)
             r.raise_for_status()
             result = r.json()
+            duration = time.time() - start
+
+            # Animate progress bar based on actual duration
+            steps = 20
+            for i in range(steps):
+                time.sleep(duration / steps)
+                progress.progress((i + 1) / steps)
+                status.text(f"Progress: {int((i + 1) / steps * 100)}%")
 
             if "result" in result:
                 st.success("Computation finished")
@@ -106,6 +117,7 @@ if run_solver:
             st.error("Backend timed out — try again later")
         except requests.exceptions.RequestException as e:
             st.error(f"Request failed: {e}")
+
 
 
 
