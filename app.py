@@ -70,25 +70,6 @@ if st.button("Compute"):
 
 st.subheader("Run Solver")
 
-if st.button("Start computation"):
-    progress = st.progress(0)
-    status = st.empty()
-
-    with st.spinner("Running solver..."):
-        for i in range(100):
-            time.sleep(0.1)
-            progress.progress(i + 1)
-            status.text(f"Progress: {i+1}%")
-
-        # Define payload from user inputs
-        payload = {
-            "x": a,
-            "y": b,
-            "operation": operation
-        }
-        
-st.subheader("Run Solver")
-
 run_solver = st.button("Start computation")
 
 if run_solver:
@@ -125,6 +106,7 @@ if run_solver:
             st.error("Backend timed out — try again later")
         except requests.exceptions.RequestException as e:
             st.error(f"Request failed: {e}")
+
 
 
 
