@@ -86,28 +86,46 @@ if st.button("Start computation"):
             "y": b,
             "operation": operation
         }
+        
+st.subheader("Run Solver")
 
-        # Send to backend
-        if st.button("Start computation"):
-            progress = st.progress(0)
-            status = st.empty()
+run_solver = st.button("Start computation")
 
-            with st.spinner("Running solver..."):
-                for i in range(100):
-                    ...
-                    progress.progress(i + 1)
+if run_solver:
+    progress = st.progress(0)
+    status = st.empty()
 
-                payload = {...}
+    with st.spinner("Running solver..."):
+        for i in range(100):
+            time.sleep(0.1)
+            progress.progress(i + 1)
+            status.text(f"Progress: {i+1}%")
 
-                r = requests.post(BACKEND_URL, json=payload, timeout=60)
-                result = r.json()
+        # Build payload from user inputs
+        payload = {
+            "x": a,
+            "y": b,
+            "operation": operation
+        }
 
-            st.success("Computation finished")
-            st.write(result)
+        try:
+            r = requests.post(BACKEND_URL, json=payload, timeout=60)
+            r.raise_for_status()
+            result = r.json()
 
+            if "result" in result:
+                st.success("Computation finished")
+                st.write(result["result"])
+            elif "error" in result:
+                st.error(f"Backend error: {result['error']}")
+            else:
+                st.error("Unexpected response format")
 
-            st.success("Computation finished")
-            st.write(result)
+        except requests.exceptions.Timeout:
+            st.error("Backend timed out — try again later")
+        except requests.exceptions.RequestException as e:
+            st.error(f"Request failed: {e}")
+
 
 
 
