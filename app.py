@@ -32,38 +32,17 @@ with tab1:
 with tab2:
     st.header("Calculator")
 
-    # -------------------------
-    # Session defaults
-    # -------------------------
-    if "A_default" not in st.session_state:
-        st.session_state.A_default = 1
-    if "B_default" not in st.session_state:
-        st.session_state.B_default = 2
-    if "excel_loaded" not in st.session_state:
-        st.session_state.excel_loaded = False
+    # ---------- Session state init ----------
+    if "A" not in st.session_state:
+        st.session_state.A = 1.0
+    if "B" not in st.session_state:
+        st.session_state.B = 2.0
+    if "excel_applied" not in st.session_state:
+        st.session_state.excel_applied = False
+    if "df" not in st.session_state:
+        st.session_state.df = None
 
-    # -------------------------
-    # Manual calculator
-    # -------------------------
-    x = st.number_input("Enter value A", value=st.session_state.A_default, key="A")
-    y = st.number_input("Enter value B", value=st.session_state.B_default, key="B")
-    operation = st.selectbox("Choose operation", ["Add", "Subtract", "Multiply", "Divide"])
-
-    if st.button("Start Computation"):
-        payload = {"x": x, "y": y, "operation": operation}
-        try:
-            r = requests.post(SOLVE_URL, json=payload, timeout=10)
-            r.raise_for_status()
-            result = r.json().get("result")
-            st.success(f"Result: {result}")
-        except Exception as e:
-            st.error(f"Request failed: {e}")
-
-    st.markdown("---")
-
-    # -------------------------
-    # Excel Upload
-    # -------------------------
+    # ---------- Excel upload (runs BEFORE inputs) ----------
     st.subheader("Batch Calculation via Excel Upload")
 
     uploaded_file = st.file_uploader(
@@ -71,59 +50,26 @@ with tab2:
         type=["xlsx"]
     )
 
-    df = None
-
     if uploaded_file is not None:
         try:
             df = pd.read_excel(uploaded_file)
 
             if not {"A", "B"}.issubset(df.columns):
                 st.error("Excel file must contain columns named 'A' and 'B'.")
+                st.session_state.df = None
             else:
+                st.session_state.df = df
                 st.write("Preview of uploaded data:")
                 st.dataframe(df.head())
 
-                # Auto‑populate A/B only once per upload
-                if not st.session_state.excel_loaded:
-                    st.session_state.A_default = float(df.iloc[0]["A"])
-                    st.session_state.B_default = float(df.iloc[0]["B"])
-                    st.session_state.excel_loaded = True
-                    st.rerun()
+                # ✅ Apply Excel values to inputs ONCE per upload, before widgets are created
+                if not st.session_state.excel_applied:
+                    st.session_state.A = float(df.iloc[0]["A"])
+                    st.session_state.B = float(df.iloc[0]["B"])
+                    st.session_state.excel_applied = True
 
         except Exception as e:
             st.error(f"Failed to read Excel file: {e}")
-
-    # -------------------------
-    # Batch computation
-    # -------------------------
-    if df is not None and st.button("Run Batch Computation"):
-        results = []
-        progress = st.progress(0)
-        status = st.empty()
-
-        def safe_solve(payload, retries=3, delay=1):
-            for attempt in range(retries):
-                try:
-                    r = requests.post(SOLVE_URL, json=payload, timeout=10)
-                    r.raise_for_status()
-                    return r.json().get("result")
-                except Exception as e:
-                    time.sleep(delay)
-            return f"Error: {e}"
-
-        for i, row in enumerate(df.itertuples(index=False), start=1):
-            payload = {
-                "x": float(row.A),
-                "y": float(row.B),
-                "operation": operation
-            }
-            result = safe_solve(payload)
-            results.append(result)
-
-            progress.progress(i / len(df))
-            status.text(f"Progress: {int(i / len(df) * 100)}%")
-            time.sleep(0.2)
-
-        df["Result"] = results
-        st.success("Batch computation complete.")
-        st.dataframe(df)
+            st.session_state.df = None
+    else:
+        st.session_state.df = None
