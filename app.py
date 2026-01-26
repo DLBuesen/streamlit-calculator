@@ -62,11 +62,72 @@ with tab2:
                 st.write("Preview of uploaded data:")
                 st.dataframe(df.head())
 
-                # ⭐ Apply Excel values BEFORE widgets are created
+                # ✅ Apply Excel values BEFORE widgets are created
                 if not st.session_state.excel_applied:
                     st.session_state.A = float(df.iloc[0]["A"])
                     st.session_state.B = float(df.iloc[0]["B"])
                     st.session_state.excel_applied = True
 
         except Exception as e:
-            st.error(f"Failed to read
+            st.error(f"Failed to read Excel file: {e}")
+            st.session_state.df = None
+
+    else:
+        # Reset when no file is present
+        st.session_state.df = None
+        st.session_state.excel_applied = False
+
+    st.markdown("---")
+
+    # ---------- Manual calculator (widgets always visible) ----------
+    x = st.number_input("Enter value A", key="A")
+    y = st.number_input("Enter value B", key="B")
+    operation = st.selectbox("Choose operation", ["Add", "Subtract", "Multiply", "Divide"])
+
+    if st.button("Start Computation"):
+        payload = {"x": x, "y": y, "operation": operation}
+        try:
+            r = requests.post(SOLVE_URL, json=payload, timeout=10)
+            r.raise_for_status()
+            result = r.json().get("result")
+            st.success(f"Result: {result}")
+        except Exception as e:
+            st.error(f"Request failed: {e}")
+
+    st.markdown("---")
+
+    # ---------- Batch computation with progress ----------
+    df = st.session_state.df
+
+    if df is not None and st.button("Run Batch Computation"):
+        results = []
+        progress = st.progress(0)
+        status = st.empty()
+
+        def safe_solve(payload, retries=3, delay=1):
+            for attempt in range(retries):
+                try:
+                    r = requests.post(SOLVE_URL, json=payload, timeout=10)
+                    r.raise_for_status()
+                    return r.json().get("result")
+                except Exception as e:
+                    time.sleep(delay)
+            return f"Error: {e}"
+
+        for i, row in enumerate(df.itertuples(index=False), start=1):
+            payload = {
+                "x": float(row.A),
+                "y": float(row.B),
+                "operation": operation
+            }
+            result = safe_solve(payload)
+            results.append(result)
+
+            progress.progress(i / len(df))
+            status.text(f"Progress: {int(i / len(df) * 100)}%")
+            time.sleep(0.1)
+
+        df = df.copy()
+        df["Result"] = results
+        st.success("Batch computation complete.")
+        st.dataframe(df)
