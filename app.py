@@ -71,9 +71,13 @@ with tab2:
 
 # --- Upload parameters from Excel file and update input field values ---
 
+# --- Excel upload section ---
 st.subheader("Batch Calculation via Excel Upload")
 
-uploaded_file = st.file_uploader("Upload an Excel file (.xlsx) with columns A and B", type=["xlsx"])
+uploaded_file = st.file_uploader(
+    "Upload an Excel file (.xlsx) with columns A and B",
+    type=["xlsx"]
+)
 
 if uploaded_file is not None:
     import pandas as pd
@@ -87,79 +91,52 @@ if uploaded_file is not None:
             st.write("Preview of uploaded data:")
             st.dataframe(df.head())
 
-            # ⭐⭐⭐ AUTO‑UPDATE MANUAL INPUT FIELDS HERE ⭐⭐⭐
-            st.session_state.A = float(df.iloc[0]["A"])
-            st.session_state.B = float(df.iloc[0]["B"])
+            # ⭐ Auto‑update manual calculator fields using first row
+            st.session_state.A_default = float(df.iloc[0]["A"])
+            st.session_state.B_default = float(df.iloc[0]["B"])
+
+            # Refresh UI so the number_input widgets show new values
             st.experimental_rerun()
-            # ------------------------------------------------
-
-            if st.button("Run Batch Computation"):
-                results = []
-                progress = st.progress(0)
-                status = st.empty()
-
-                def safe_solve(payload, retries=3, delay=1):
-                    for attempt in range(retries):
-                        try:
-                            r = requests.post(SOLVE_URL, json=payload, timeout=10)
-                            r.raise_for_status()
-                            return r.json().get("result")
-                        except Exception as e:
-                            time.sleep(delay)
-                    return f"Error: {e}"
-
-                for i, row in enumerate(df.itertuples(index=False), start=1):
-                    payload = {
-                        "x": float(row.A),
-                        "y": float(row.B),
-                        "operation": operation
-                    }
-                    result = safe_solve(payload)
-                    results.append(result)
-
-                    progress.progress(i / len(df))
-                    status.text(f"Progress: {int(i / len(df) * 100)}%")
-                    time.sleep(0.2)
-
-                df["Result"] = results
-                st.success("Batch computation complete.")
-                st.dataframe(df)
 
     except Exception as e:
         st.error(f"Failed to read Excel file: {e}")
 
+# ----------------------------
+# ⭐ Separate batch computation
+# ----------------------------
 
+if uploaded_file is not None and st.button("Run Batch Computation"):
+    results = []
+    progress = st.progress(0)
+    status = st.empty()
 
-        # Progress Bar
-
-        with st.spinner("Running solver..."):
-            start = time.time()
-
+    def safe_solve(payload, retries=3, delay=1):
+        for attempt in range(retries):
             try:
-                r = requests.post(SOLVE_URL, json=payload, timeout=60)
+                r = requests.post(SOLVE_URL, json=payload, timeout=10)
                 r.raise_for_status()
-                result = r.json()
-                duration = time.time() - start
+                return r.json().get("result")
+            except Exception as e:
+                time.sleep(delay)
+        return f"Error: {e}"
 
-                # Animate progress bar based on actual duration
-                steps = 20
-                for i in range(steps):
-                    time.sleep(duration / steps)
-                    progress.progress((i + 1) / steps)
-                    status.text(f"Progress: {int((i + 1) / steps * 100)}%")
+    for i, row in enumerate(df.itertuples(index=False), start=1):
+        payload = {
+            "x": float(row.A),
+            "y": float(row.B),
+            "operation": operation
+        }
+        result = safe_solve(payload)
+        results.append(result)
 
-                if "result" in result:
-                    st.success("Computation finished")
-                    st.write(result["result"])
-                elif "error" in result:
-                    st.error(f"Backend error: {result['error']}")
-                else:
-                    st.error("Unexpected response format")
+        progress.progress(i / len(df))
+        status.text(f"Progress: {int(i / len(df) * 100)}%")
+        time.sleep(0.2)
 
-            except requests.exceptions.Timeout:
-                st.error("Backend timed out — try again later")
-            except requests.exceptions.RequestException as e:
-                st.error(f"Request failed: {e}")
+    df["Result"] = results
+    st.success("Batch computation complete.")
+    st.dataframe(df)
+
 
 
 
