@@ -62,55 +62,59 @@ with tab2:
 
     st.markdown("---")
 
-    # --- Excel upload section ---
-    st.subheader("Batch Calculation via Excel Upload")
 
-    uploaded_file = st.file_uploader("Upload an Excel file (.xlsx) with columns A and B", type=["xlsx"])
+# --- Excel upload section ---
+st.subheader("Batch Calculation via Excel Upload")
 
-    if uploaded_file is not None:
-        import pandas as pd
+uploaded_file = st.file_uploader("Upload an Excel file (.xlsx) with columns A and B", type=["xlsx"])
 
-        try:
-            df = pd.read_excel(uploaded_file)
+if uploaded_file is not None:
+    import pandas as pd
 
-            if not {"A", "B"}.issubset(df.columns):
-                st.error("Excel file must contain columns named 'A' and 'B'.")
-            else:
-                st.write("Preview of uploaded data:")
-                st.dataframe(df.head())
+    try:
+        df = pd.read_excel(uploaded_file)
 
-if st.button("Run Batch Computation"):
-    results = []
-    progress = st.progress(0)
-    status = st.empty()
+        if not {"A", "B"}.issubset(df.columns):
+            st.error("Excel file must contain columns named 'A' and 'B'.")
+        else:
+            st.write("Preview of uploaded data:")
+            st.dataframe(df.head())
 
-    def safe_solve(payload, retries=3, delay=1):
-        for attempt in range(retries):
-            try:
-                r = requests.post(SOLVE_URL, json=payload, timeout=10)
-                r.raise_for_status()
-                return r.json().get("result")
-            except Exception as e:
-                time.sleep(delay)
-        return f"Error: {e}"
+            if st.button("Run Batch Computation"):
+                results = []
+                progress = st.progress(0)
+                status = st.empty()
 
-    for i, row in enumerate(df.itertuples(index=False), start=1):
-        payload = {
-            "x": float(row.A),
-            "y": float(row.B),
-            "operation": operation
-        }
-        result = safe_solve(payload)
-        results.append(result)
+                def safe_solve(payload, retries=3, delay=1):
+                    for attempt in range(retries):
+                        try:
+                            r = requests.post(SOLVE_URL, json=payload, timeout=10)
+                            r.raise_for_status()
+                            return r.json().get("result")
+                        except Exception as e:
+                            time.sleep(delay)
+                    return f"Error: {e}"
 
-        progress.progress(i / len(df))
-        status.text(f"Progress: {int(i / len(df) * 100)}%")
+                for i, row in enumerate(df.itertuples(index=False), start=1):
+                    payload = {
+                        "x": float(row.A),
+                        "y": float(row.B),
+                        "operation": operation
+                    }
+                    result = safe_solve(payload)
+                    results.append(result)
 
-        time.sleep(0.2)  # Give Funnel breathing room
+                    progress.progress(i / len(df))
+                    status.text(f"Progress: {int(i / len(df) * 100)}%")
+                    time.sleep(0.2)
 
-        df["Result"] = results
-        st.success("Batch computation complete.")
-        st.dataframe(df)
+                df["Result"] = results
+                st.success("Batch computation complete.")
+                st.dataframe(df)
+
+    except Exception as e:
+        st.error(f"Failed to read Excel file: {e}")
+
 
         # Progress Bar
 
