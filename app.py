@@ -43,35 +43,65 @@ with tab1:
 # ------------------------- # TAB 2 — Calculator # -------------------------
 
 with tab2:
+    st.header("Calculator")
 
-    # --- Input section ---
+    # --- Manual single calculation ---
+    x = st.number_input("Enter value A", value=1)
+    y = st.number_input("Enter value B", value=2)
+    operation = st.selectbox("Choose operation", ["Add", "Subtract", "Multiply", "Divide"])
 
-    st.subheader("Inputs")
+    if st.button("Start Computation"):
+        payload = {"x": x, "y": y, "operation": operation}
+        try:
+            r = requests.post(SOLVE_URL, json=payload, timeout=10)
+            r.raise_for_status()
+            result = r.json().get("result")
+            st.success(f"Result: {result}")
+        except Exception as e:
+            st.error(f"Request failed: {e}")
 
-    a = st.number_input("Enter value A", value=0.0, format="%.0f")
-    b = st.number_input("Enter value B", value=0.0, format="%.0f")
+    st.markdown("---")
 
-    operation = st.selectbox(
-        "Choose operation",
-        ["Add", "Subtract", "Multiply", "Divide"]
-    )
+    # --- Excel upload section ---
+    st.subheader("Batch Calculation via Excel Upload")
 
-    # --- Run the calculation with a status bar ---
+    uploaded_file = st.file_uploader("Upload an Excel file (.xlsx) with columns A and B", type=["xlsx"])
 
-    st.subheader("Run Solver")
+    if uploaded_file is not None:
+        import pandas as pd
 
-    run_solver = st.button("Start Computation")
+        try:
+            df = pd.read_excel(uploaded_file)
 
-    if run_solver:
-        progress = st.progress(0)
-        status = st.empty()
+            if not {"A", "B"}.issubset(df.columns):
+                st.error("Excel file must contain columns named 'A' and 'B'.")
+            else:
+                st.write("Preview of uploaded data:")
+                st.dataframe(df.head())
 
-        # Build payload from user inputs
-        payload = {
-            "x": a,
-            "y": b,
-            "operation": operation
-        }
+                if st.button("Run Batch Computation"):
+                    results = []
+                    for _, row in df.iterrows():
+                        payload = {
+                            "x": float(row["A"]),
+                            "y": float(row["B"]),
+                            "operation": operation
+                        }
+                        try:
+                            r = requests.post(SOLVE_URL, json=payload, timeout=10)
+                            r.raise_for_status()
+                            results.append(r.json().get("result"))
+                        except Exception as e:
+                            results.append(f"Error: {e}")
+
+                    df["Result"] = results
+                    st.success("Batch computation complete.")
+                    st.dataframe(df)
+
+        except Exception as e:
+            st.error(f"Failed to read Excel file: {e}")
+
+        # Progress Bar
 
         with st.spinner("Running solver..."):
             start = time.time()
