@@ -42,7 +42,7 @@ with tab2:
     if "df" not in st.session_state:
         st.session_state.df = None
 
-    # ---------- Excel upload (runs BEFORE inputs) ----------
+    # ---------- Excel upload (runs BEFORE widgets) ----------
     st.subheader("Batch Calculation via Excel Upload")
 
     uploaded_file = st.file_uploader(
@@ -62,14 +62,11 @@ with tab2:
                 st.write("Preview of uploaded data:")
                 st.dataframe(df.head())
 
-                # ✅ Apply Excel values to inputs ONCE per upload, before widgets are created
+                # ⭐ Apply Excel values BEFORE widgets are created
                 if not st.session_state.excel_applied:
                     st.session_state.A = float(df.iloc[0]["A"])
                     st.session_state.B = float(df.iloc[0]["B"])
                     st.session_state.excel_applied = True
 
         except Exception as e:
-            st.error(f"Failed to read Excel file: {e}")
-            st.session_state.df = None
-    else:
-        st.session_state.df = None
+            st.error(f"Failed to read
