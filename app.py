@@ -71,7 +71,6 @@ with tab2:
 
 # --- Upload parameters from Excel file and update input field values ---
 
-# --- Excel upload section ---
 st.subheader("Batch Calculation via Excel Upload")
 
 uploaded_file = st.file_uploader(
@@ -91,20 +90,15 @@ if uploaded_file is not None:
             st.write("Preview of uploaded data:")
             st.dataframe(df.head())
 
-            # ⭐ Auto‑update manual calculator fields using first row
+            # ✅ Auto‑populate manual calculator fields using first row
             st.session_state.A_default = float(df.iloc[0]["A"])
             st.session_state.B_default = float(df.iloc[0]["B"])
-
-            # Refresh UI so the number_input widgets show new values
-            st.experimental_rerun()
+            st.rerun()
 
     except Exception as e:
         st.error(f"Failed to read Excel file: {e}")
 
-# ----------------------------
-# ⭐ Separate batch computation
-# ----------------------------
-
+# --- Separate batch computation block ---
 if uploaded_file is not None and st.button("Run Batch Computation"):
     results = []
     progress = st.progress(0)
@@ -136,6 +130,8 @@ if uploaded_file is not None and st.button("Run Batch Computation"):
     df["Result"] = results
     st.success("Batch computation complete.")
     st.dataframe(df)
+
+
 
 
 
