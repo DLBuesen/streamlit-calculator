@@ -45,9 +45,15 @@ with tab1:
 with tab2:
     st.header("Calculator")
 
+    if "A" not in st.session_state:
+        st.session_state.A = 1
+    if "B" not in st.session_state:
+        st.session_state.B = 2
+
     # --- Manual single calculation ---
-    x = st.number_input("Enter value A", value=1)
-    y = st.number_input("Enter value B", value=2)
+    x = st.number_input("Enter value A", key="A")
+    y = st.number_input("Enter value B", key="B")
+
     operation = st.selectbox("Choose operation", ["Add", "Subtract", "Multiply", "Divide"])
 
     if st.button("Start Computation"):
@@ -63,7 +69,8 @@ with tab2:
     st.markdown("---")
 
 
-# --- Excel upload section ---
+# --- Upload parameters from Excel file and update input field values ---
+
 st.subheader("Batch Calculation via Excel Upload")
 
 uploaded_file = st.file_uploader("Upload an Excel file (.xlsx) with columns A and B", type=["xlsx"])
@@ -79,6 +86,12 @@ if uploaded_file is not None:
         else:
             st.write("Preview of uploaded data:")
             st.dataframe(df.head())
+
+            # ⭐⭐⭐ AUTO‑UPDATE MANUAL INPUT FIELDS HERE ⭐⭐⭐
+            st.session_state.A = float(df.iloc[0]["A"])
+            st.session_state.B = float(df.iloc[0]["B"])
+            st.experimental_rerun()
+            # ------------------------------------------------
 
             if st.button("Run Batch Computation"):
                 results = []
@@ -114,6 +127,7 @@ if uploaded_file is not None:
 
     except Exception as e:
         st.error(f"Failed to read Excel file: {e}")
+
 
 
         # Progress Bar
