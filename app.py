@@ -12,8 +12,8 @@ def cached_backend_status(url: str) -> bool:
 
 st.title("Scientific Calculator (Backend Powered)")
 
-PING_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/ping"
-SOLVE_URL = "https://ebt-tower-pc-1.tailbd8bdf.ts.net/solve"
+PING_URL = "https://http://100.90.248.49:5000/ping"
+SOLVE_URL = "https://http://100.90.248.49:5000/solve"
 
 import time
 
