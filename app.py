@@ -69,9 +69,12 @@ with tab2:
     st.markdown("---")
 
 
-# --- Upload parameters from Excel file and update input field values ---
-
+# --- Excel upload section ---
 st.subheader("Batch Calculation via Excel Upload")
+
+# Initialize rerun flag
+if "excel_loaded" not in st.session_state:
+    st.session_state.excel_loaded = False
 
 uploaded_file = st.file_uploader(
     "Upload an Excel file (.xlsx) with columns A and B",
@@ -90,13 +93,7 @@ if uploaded_file is not None:
             st.write("Preview of uploaded data:")
             st.dataframe(df.head())
 
-            # ✅ Auto‑populate manual calculator fields using first row
-            st.session_state.A_default = float(df.iloc[0]["A"])
-            st.session_state.B_default = float(df.iloc[0]["B"])
-            st.rerun()
-
-    except Exception as e:
-        st.error(f"Failed to read Excel file: {e}")
+            # ✅ Auto‑populate manual
 
 # --- Separate batch computation block ---
 if uploaded_file is not None and st.button("Run Batch Computation"):
