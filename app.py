@@ -79,27 +79,38 @@ with tab2:
                 st.write("Preview of uploaded data:")
                 st.dataframe(df.head())
 
-                if st.button("Run Batch Computation"):
-                    results = []
-                    for _, row in df.iterrows():
-                        payload = {
-                            "x": float(row["A"]),
-                            "y": float(row["B"]),
-                            "operation": operation
-                        }
-                        try:
-                            r = requests.post(SOLVE_URL, json=payload, timeout=10)
-                            r.raise_for_status()
-                            results.append(r.json().get("result"))
-                        except Exception as e:
-                            results.append(f"Error: {e}")
+if st.button("Run Batch Computation"):
+    results = []
+    progress = st.progress(0)
+    status = st.empty()
 
-                    df["Result"] = results
-                    st.success("Batch computation complete.")
-                    st.dataframe(df)
+    def safe_solve(payload, retries=3, delay=1):
+        for attempt in range(retries):
+            try:
+                r = requests.post(SOLVE_URL, json=payload, timeout=10)
+                r.raise_for_status()
+                return r.json().get("result")
+            except Exception as e:
+                time.sleep(delay)
+        return f"Error: {e}"
 
-        except Exception as e:
-            st.error(f"Failed to read Excel file: {e}")
+    for i, row in enumerate(df.itertuples(index=False), start=1):
+        payload = {
+            "x": float(row.A),
+            "y": float(row.B),
+            "operation": operation
+        }
+        result = safe_solve(payload)
+        results.append(result)
+
+        progress.progress(i / len(df))
+        status.text(f"Progress: {int(i / len(df) * 100)}%")
+
+        time.sleep(0.2)  # Give Funnel breathing room
+
+        df["Result"] = results
+        st.success("Batch computation complete.")
+        st.dataframe(df)
 
         # Progress Bar
 
